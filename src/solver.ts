@@ -1,4 +1,5 @@
-import { uniqBy, flatMap, range } from 'lodash'
+import { uniqBy, flatMap, range } from 'lodash';
+import solver from './solvers/stitch-dfs';
 
 const sequencesToString = (seqs: string[], matrix: string[][]) =>
   seqs.map(seq => {
@@ -80,23 +81,32 @@ const evaluate = (seqs: string[], matrix: string[][], targets: string[][]) => {
   const strings = sequencesToString(seqs, matrix)
   const targetStrings = targets.map(target => target.join(''))
   let maxScore = 0
+
   const evaluated = strings.map((s, stringIndex) => {
     let score = 0
     let seqLength = 0
     const matchedIndices: number[] = []
+
     targetStrings.forEach((targetString, i) => {
       const startLocation = s.indexOf(targetString)
+
       if (startLocation > -1) {
         // Give higher priority to lower targets
         score += 1 + 0.1 * i
+
         const endLocation = startLocation + targetString.length
+
         seqLength = Math.max(seqLength, endLocation)
+
         matchedIndices.push(i)
       }
     })
+
     maxScore = Math.max(score, maxScore)
+
     return { score, stringIndex, seqLength, matchedIndices }
   })
+
   const withMaxScores = evaluated.filter(({ score }) => score === maxScore)
   const minSeqLength = Math.min(
     ...withMaxScores.map(({ seqLength }) => seqLength)
@@ -108,14 +118,16 @@ const evaluate = (seqs: string[], matrix: string[][], targets: string[][]) => {
     seq: seqs[stringIndex].slice(0, minSeqLength * 2),
     matchedIndices,
   }))
+
   return uniqBy(preChosen, ({ seq }) => seq)
 }
+
+
 
 export const solve = (
   matrix: string[][],
   targets: string[][],
-  totalBufferSize: number
-) =>
+  totalBufferSize: number) => 
   evaluate(
     getSequences({
       bufferSize: totalBufferSize,
